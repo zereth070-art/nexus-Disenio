@@ -35,3 +35,45 @@
         });
     });
 })();
+
+// 3. Soporte para carrusel si Bootstrap JS no está cargado (offline / file://)
+(function initCarouselFallback() {
+    if (typeof bootstrap !== 'undefined') return;
+    document.addEventListener('click', (e) => {
+        const control = e.target.closest('.carousel-control-prev, .carousel-control-next');
+        if (!control) return;
+        e.preventDefault();
+        const targetId = control.getAttribute('data-bs-target') || control.getAttribute('data-target') || control.getAttribute('href');
+        if (!targetId || !targetId.startsWith('#')) return;
+        const carousel = document.querySelector(targetId);
+        if (!carousel) return;
+        const items = carousel.querySelectorAll('.carousel-item');
+        if (!items.length) return;
+        const activeIdx = Array.from(items).findIndex((el) => el.classList.contains('active'));
+        if (activeIdx === -1) return;
+        const isNext = control.classList.contains('carousel-control-next') ||
+                       control.getAttribute('data-bs-slide') === 'next' ||
+                       control.getAttribute('data-slide') === 'next';
+        const nextIdx = isNext ? (activeIdx + 1) % items.length : (activeIdx - 1 + items.length) % items.length;
+        carousel.querySelectorAll('video').forEach((v) => v.pause());
+        items[activeIdx].classList.remove('active');
+        items[nextIdx].classList.add('active');
+    });
+})();
+
+// 4. Gestión de reproducción de vídeos en carruseles
+(function initCarouselVideos() {
+    document.querySelectorAll('.carousel').forEach((carousel) => {
+        carousel.addEventListener('slide.bs.carousel', () => {
+            carousel.querySelectorAll('video').forEach((v) => v.pause());
+        });
+        carousel.querySelectorAll('video').forEach((video) => {
+            video.addEventListener('play', () => {
+                if (window.bootstrap && bootstrap.Carousel) {
+                    const inst = bootstrap.Carousel.getInstance(carousel);
+                    if (inst) inst.pause();
+                }
+            });
+        });
+    });
+})();
