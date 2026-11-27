@@ -19,4 +19,4 @@ Thumbs.db
 .env.local
 
 # Vídeos grandes (exceden el límite de 100 MB de GitHub)
-media/originales/video/*.mkv
+*.mkv
